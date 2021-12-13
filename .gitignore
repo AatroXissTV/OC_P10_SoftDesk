@@ -10,3 +10,6 @@ __pycache__
 
 # Key #
 secret.py
+
+# migrations #
+migrations
