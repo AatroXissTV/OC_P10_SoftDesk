@@ -1,5 +1,12 @@
-### venv ###
+# venv #
 .venv/
 
-### vscode ###
+# vscode #
 .vscode/
+
+# pycache #
+__pycache__
+*.pyc
+
+# Key #
+secret.py
