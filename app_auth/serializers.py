@@ -24,6 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
     password_confirmation = serializers.CharField(
         write_only=True,
         required=True,
+        style={'input_type': 'password'}
     )
 
     class Meta:
@@ -38,7 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
             'password_confirmation': {'write_only': True},
         }
 
-    def validate(self, data):
+    def get_validation(self, data):
         if data['password'] != data['password_confirmation']:
             raise serializers.ValidationError(
                 {'Password': 'Passwords do not match'})

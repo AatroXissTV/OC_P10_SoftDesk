@@ -6,12 +6,11 @@ from . import views
 urlpatterns = [
     path(
         'login/',
-        views.MyTokenObtainSerializer.as_view(),
+        views.MyTokenObtainView.as_view(),
         name='token_obtain'
     ),
     path(
         'register/',
-        views.CreateUserView.as_view(),
-        name='create_user'
+        views.CreateUserView.as_view()
     ),
 ]
