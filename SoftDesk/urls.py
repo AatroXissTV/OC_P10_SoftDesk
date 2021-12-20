@@ -18,10 +18,14 @@ Including another URLconf
 from app_auth.views import SignupView
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from rest_framework import routers
+
+router = routers.SimpleRouter()
+
 
 urlpatterns = [
-    path('api/signup/', SignupView.as_view(), name='signup'),
     path('admin/', admin.site.urls),
-
+    path('api/signup/', SignupView.as_view(), name='signup'),
+    path('api/', include(router.urls)),
 ]
