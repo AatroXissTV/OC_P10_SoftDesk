@@ -23,7 +23,6 @@ from rest_framework import routers
 
 router = routers.SimpleRouter()
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/signup/', SignupView.as_view(), name='signup'),
