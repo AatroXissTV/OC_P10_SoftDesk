@@ -1,5 +1,8 @@
+# django imports
 from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
+
+# django rest framework imports
 
 
 class User(AbstractBaseUser):
