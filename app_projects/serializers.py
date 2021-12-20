@@ -5,8 +5,7 @@ from .models import Project, Contributor, Issue, Comment
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = '__all__'
-        read_only_fields = ('author_user_id', 'id')
+        fields = ['id', 'title', 'description', 'type']
 
 
 class ContributorSerializer(serializers.ModelSerializer):
