@@ -1,10 +1,14 @@
 # django imports
 from django.contrib.auth import get_user_model
+# from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
 
 # django rest framework imports
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainSerializer
+from rest_framework_simplejwt.serializers import (
+    PasswordField,
+    TokenObtainSerializer
+)
 from rest_framework_simplejwt.tokens import AccessToken
 
 # Get custom user model
@@ -13,40 +17,33 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
 
-    # passwords & password_confirmation
-    password = serializers.CharField(
-        write_only=True,
-        required=True,
-        style={'input_type': 'password'},
-        validators=[validate_password]
-    )
-
-    password_confirmation = serializers.CharField(
-        write_only=True,
-        required=True,
-        style={'input_type': 'password'}
-    )
+    password = PasswordField(write_only=True)
+    password_confirmation = PasswordField(write_only=True)
 
     class Meta:
         model = User
-        fields = (
+        fields = [
             'username',
+            'first_name',
+            'last_name',
             'password',
-            'password_confirmation'
-        )
-        extra_kwargs = {
-            'password': {'write_only': True},
-            'password_confirmation': {'write_only': True},
-        }
+            'email',
+            'password_confirmation']
 
     def get_validation(self, data):
         if data['password'] != data['password_confirmation']:
             raise serializers.ValidationError(
-                {'Password': 'Passwords do not match'})
-        elif len(data['password']) < 8:
-            raise serializers.ValidationError(
-                {'Password': 'Password must be at least 8 characters long'})
+                'Password and password confirmation must match.'
+            )
+        validate_password(data['password'])
         return data
+
+    def create(self, validated_data):
+        validated_data.pop('password_confirmation')
+        user = User.objects.create(**validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
 
 class MyTokenObtainSerializer(TokenObtainSerializer):
@@ -56,5 +53,5 @@ class MyTokenObtainSerializer(TokenObtainSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        refresh = self.get_token(self.user)
-        data['access'] = str(refresh)
+        access = self.get_token(self.user)
+        data['access'] = str(access)
