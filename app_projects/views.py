@@ -8,28 +8,27 @@ from .serializers import IssueSerializer, CommentSerializer
 
 class ProjectViewSet(viewsets.ModelViewSet):
 
-    serializer_class = ProjectSerializer
     queryset = Project.objects.all()
-
-    def get_queryset(self):
-        return Project.objects.filter(contributor__user=self.request.user)
+    serializer_class = ProjectSerializer
 
     def create(self, request):
+        serializer = ProjectSerializer(
+            context={'request': request},
+            data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            # Contributor Part
+            contributor = Contributor(
+                user_id=request.user,
+                project_id=serializer.instance,
+                role='author'
+            )
+            contributor.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        data = request.data.copy()
-        data['author'] = request.user.id
-        serialized = ProjectSerializer(data=data)
-        serialized.is_valid(raise_exception=True)
-        project = serialized.save()
-
-        contributor = Contributor.objects.create(
-            user=request.user,
-            project=project,
-            role='author'
-        )
-        contributor.save()
-
-        return Response(serialized.data, status=status.HTTP_201_CREATED)
+    def delete():
+        pass
 
 
 class ContributorViewSet(viewsets.ModelViewSet):

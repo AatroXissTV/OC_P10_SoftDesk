@@ -9,7 +9,7 @@ from rest_framework_nested import routers
 from . import views
 
 router = DefaultRouter()
-router.register(r'users', views.ProjectViewSet)
+router.register(r'projects', views.ProjectViewSet)
 
 projects_router = routers.NestedSimpleRouter(
     router,
@@ -19,12 +19,12 @@ projects_router = routers.NestedSimpleRouter(
 projects_router.register(
     r'issues',
     views.IssueViewSet,
-    base_name='project-issues'
+    basename='project-issues'
 )
 projects_router.register(
     r'contributors',
     views.ContributorViewSet,
-    base_name='project-contributors'
+    basename='project-contributors'
 )
 
 issues_router = routers.NestedSimpleRouter(
@@ -35,7 +35,7 @@ issues_router = routers.NestedSimpleRouter(
 issues_router.register(
     r'comments',
     views.CommentViewSet,
-    base_name='issue-comments'
+    basename='issue-comments'
 )
 
 urlpatterns = [
