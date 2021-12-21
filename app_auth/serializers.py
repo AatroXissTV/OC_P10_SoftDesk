@@ -26,8 +26,8 @@ class UserSerializer(serializers.ModelSerializer):
             'username',
             'first_name',
             'last_name',
-            'password',
             'email',
+            'password',
             'password_confirmation']
 
     def get_validation(self, data):
