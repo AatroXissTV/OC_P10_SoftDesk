@@ -11,8 +11,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 class ContributorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contributor
-        fields = '__all__'
-        read_only_fields = ('project_id', 'role', 'id')
+        fields = ['id', 'user_id', 'project_id', 'role']
 
 
 class IssueSerializer(serializers.ModelSerializer):
