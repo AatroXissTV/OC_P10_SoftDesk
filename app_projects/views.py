@@ -65,6 +65,13 @@ class ContributorViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request, project_pk=None, pk=None):
+        queryset = Contributor.objects.filter(project_id=project_pk, pk=pk)
+        contributor = get_object_or_404(queryset, pk=pk)
+        self.check_object_permissions(request, contributor)
+        contributor.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class IssueViewSet(viewsets.ModelViewSet):
 
@@ -84,6 +91,16 @@ class IssueViewSet(viewsets.ModelViewSet):
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, project_pk=None, pk=None):
+        queryset = Issue.objects.filter(project_id=project_pk, pk=pk)
+        issue = get_object_or_404(queryset, pk=pk)
+        self.check_object_permissions(request, issue)
+        comments = Comment.objects.filter(issue=pk)
+        for comment in comments:
+            comment.delete()
+        issue.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -107,3 +124,11 @@ class CommentViewSet(viewsets.ModelViewSet):
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None, project_pk=None, issue_pk=None):
+        if not Issue.objects.filter(pk=issue_pk, project=project_pk).exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        comments = get_object_or_404(Comment, pk=pk, issue=issue_pk)
+        self.check_object_permissions(request, comments)
+        comments.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
