@@ -88,6 +88,7 @@ class IssueViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
 
+    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
     def create(self, request, pk=None, project_pk=None, issue_pk=None):
