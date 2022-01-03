@@ -7,15 +7,18 @@ from .models import (
     Project,
     Contributor,
     Issue,
+    Comment
 )
 
 from .serializers import (
+    CommentSerializer,
     IssueSerializer,
     ProjectSerializer,
     ContributorSerializer
 )
 
 from .permissions import (
+    IsCommentAuthor,
     IsProjectAuthor,
     IsProjectContributor,
     IsIssueAuthor
@@ -135,4 +138,25 @@ class IssueViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    pass
+
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated, IsCommentAuthor]
+
+    def get_queryset(self):
+        return Comment.objects.filter(issue_id=self.kwargs['issue_pk'])
+
+    def create(self, request, project_pk=None, issue_pk=None):
+
+        data = request.data.copy()
+
+        data['author_user'] = self.request.user.pk
+        data['issue'] = issue_pk
+
+        serialized_data = CommentSerializer(data=data)
+        serialized_data.is_valid(raise_exception=True)
+        serialized_data.save()
+
+        return Response(
+            {'message': 'Comment created'},
+            status=status.HTTP_201_CREATED
+        )

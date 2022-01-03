@@ -54,4 +54,16 @@ class IsIssueAuthor(permissions.BasePermission):
 
 
 class IsCommentAuthor(permissions.BasePermission):
-    pass
+
+    def has_permission(self, request, view):
+        project = Project.objects.get(id=view.kwargs['project_pk'])
+        ctr_projects = Project.objects.filter(contributors__user=request.user)
+
+        if project in ctr_projects:
+            return True
+        return False
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user == obj.author_user
