@@ -3,9 +3,23 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 # local imports
-from .models import Project, Contributor
-from .serializers import ProjectSerializer, ContributorSerializer
-from .permissions import IsProjectAuthor, IsProjectContributor
+from .models import (
+    Project,
+    Contributor,
+    Issue,
+)
+
+from .serializers import (
+    IssueSerializer,
+    ProjectSerializer,
+    ContributorSerializer
+)
+
+from .permissions import (
+    IsProjectAuthor,
+    IsProjectContributor,
+    IsIssueAuthor
+)
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -59,9 +73,6 @@ class ContributorViewSet(viewsets.ModelViewSet):
         to the project.
         """
 
-        # check permissions
-        request.is_valid(raise_exception=True)
-
         data = request.data.copy()
         contributors_list = []
 
@@ -76,12 +87,11 @@ class ContributorViewSet(viewsets.ModelViewSet):
             )
         else:
             # add the user as a contributor
-            contributor = Contributor.objects.create(
-                user_id=data['user'],
-                project_id=project_pk,
-                role=data['role'],
-            )
-            contributor.save()
+            data['project'] = project_pk
+            data['role'] = 'contributor'
+            serializer = ContributorSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
             return Response(
                 {'message': 'User added as contributor'},
@@ -90,7 +100,38 @@ class ContributorViewSet(viewsets.ModelViewSet):
 
 
 class IssueViewSet(viewsets.ModelViewSet):
-    pass
+
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated, IsIssueAuthor]
+
+    def get_queryset(self):
+        return Issue.objects.filter(project_id=self.kwargs['project_pk'])
+
+    def create(self, request, project_pk=None):
+
+        data = request.data.copy()
+
+        # check if the issue already exists
+        if Issue.objects.filter(title=data['title']).exists():
+            return Response(
+                {'error': 'Issue already exists'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        data['author_user'] = self.request.user.pk
+        data['project'] = project_pk
+
+        if 'assignee_user' not in data:
+            data['assignee_user'] = request.user.pk
+
+        serialized_data = IssueSerializer(data=data)
+        serialized_data.is_valid(raise_exception=True)
+        serialized_data.save()
+
+        return Response(
+            {'message': 'Issue created'},
+            status=status.HTTP_201_CREATED
+        )
 
 
 class CommentViewSet(viewsets.ModelViewSet):

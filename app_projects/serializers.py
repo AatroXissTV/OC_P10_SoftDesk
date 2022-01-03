@@ -17,9 +17,9 @@ class ContributorSerializer(serializers.ModelSerializer):
 class IssueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
-        fields = '__all__'
-        read_only_fields = ('project', 'author_user',
-                            'created_time', 'id')
+        fields = ['id', 'title', 'desc', 'tag', 'priority',
+                  'project', 'status', 'author_user',
+                  'assignee_user', 'created_time']
 
 
 class CommentSerializer(serializers.ModelSerializer):
