@@ -1,15 +1,27 @@
 from rest_framework import viewsets, status
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+# local imports
 from .models import Project, Contributor, Issue, Comment
 from .serializers import ProjectSerializer, ContributorSerializer
 from .serializers import IssueSerializer, CommentSerializer
+from .permissions import IsProjectAuthor
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
 
     serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated, IsProjectAuthor]
+
+    def get_queryset(self):
+
+        """
+        Return the list of projects to which the user contributes.
+        """
+
+        return Project.objects.filter(contributors__user_id=self.request.user)
 
     def perform_create(self, serializer):
 
@@ -26,14 +38,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
         author.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def get_queryset(self):
-
-        """
-        Return the list of projects to which the user contributes.
-        """
-
-        return Project.objects.filter(contributors__user_id=self.request.user)
 
 
 class ContributorViewSet(viewsets.ModelViewSet):
