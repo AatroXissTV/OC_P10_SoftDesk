@@ -9,7 +9,7 @@ from rest_framework_nested import routers
 from . import views
 
 router = DefaultRouter()
-router.register(r'projects', views.ProjectViewSet)
+router.register(r'projects', views.ProjectViewSet, basename='project')
 
 projects_router = routers.NestedSimpleRouter(
     router,
