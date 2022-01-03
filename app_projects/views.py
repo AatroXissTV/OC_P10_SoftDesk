@@ -1,13 +1,11 @@
 from rest_framework import viewsets, status
-from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 # local imports
-from .models import Project, Contributor, Issue, Comment
+from .models import Project, Contributor
 from .serializers import ProjectSerializer, ContributorSerializer
-from .serializers import IssueSerializer, CommentSerializer
-from .permissions import IsProjectAuthor
+from .permissions import IsProjectAuthor, IsProjectContributor
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -16,25 +14,29 @@ class ProjectViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsProjectAuthor]
 
     def get_queryset(self):
-
         """
-        Return the list of projects to which the user contributes.
+        Overriding the get_queryset method to return the projects
+        that the user is a contributor of.
         """
-
         return Project.objects.filter(contributors__user_id=self.request.user)
 
     def perform_create(self, serializer):
-
         """
-        Set the logged in user as the author of the project.
-        when a new project is created, it creates a contributor instance
-        for this project with the logged in user.
+        Overriding the perform_create method to add the author to the
+        project's contributors.
         """
 
-        new_project = serializer.save(author_user_id=self.request.user.id)
-        author = Contributor(project=new_project,
-                             user=self.request.user,
-                             role='author')
+        serializer.is_valid(raise_exception=True)
+        new_project = serializer.save(
+            author_user_id=self.request.user.id
+        )
+
+        # add the user as a contributor
+        author = Contributor.objects.create(
+            user=self.request.user,
+            project=new_project,
+            role='author'
+        )
         author.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -43,96 +45,53 @@ class ProjectViewSet(viewsets.ModelViewSet):
 class ContributorViewSet(viewsets.ModelViewSet):
 
     serializer_class = ContributorSerializer
-
-    def create(self, request, project_pk=None):
-
-        """"
-        Create a new contributor for a specific project.
-        """
-
-        get_object_or_404(Project, pk=project_pk)
-        data = request.data.copy()
-
-        if 'project' not in data:
-            data.update({'project': str(project_pk)})
-        serializer = ContributorSerializer(data=data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    permission_classes = [IsAuthenticated, IsProjectContributor]
 
     def get_queryset(self):
-
         """
-        Return the list of contributors associated to a specific project.
+        Return all the contributors of the project.
         """
-
         return Contributor.objects.filter(project_id=self.kwargs['project_pk'])
+
+    def create(self, request, project_pk=None):
+        """
+        Overriding the create method to add the user as a contributor
+        to the project.
+        """
+
+        # check permissions
+        request.is_valid(raise_exception=True)
+
+        data = request.data.copy()
+        contributors_list = []
+
+        for object in Contributor.objects.filter(project_id=project_pk):
+            contributors_list.append(object.user_id)
+
+        # check if the user is already a contributor
+        if int(data['user']) in contributors_list:
+            return Response(
+                {'error': 'User is already a contributor'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        else:
+            # add the user as a contributor
+            contributor = Contributor.objects.create(
+                user_id=data['user'],
+                project_id=project_pk,
+                role=data['role'],
+            )
+            contributor.save()
+
+            return Response(
+                {'message': 'User added as contributor'},
+                status=status.HTTP_201_CREATED
+            )
 
 
 class IssueViewSet(viewsets.ModelViewSet):
-    """
-    Return the list of issues associated to a specific project.
-    Users that are authors of the issue can edit and delete it.
-    """
-
-    serializer_class = IssueSerializer
-
-    def get_queryset(self):
-
-        """
-        Return the list of issues associated to a specific project
-        """
-
-        return Issue.objects.filter(project_id=self.kwargs['project_pk'])
-
-    def create(self, request, project_pk=None):
-
-        """
-        Create a new issue for a specific project.
-        """
-
-        get_object_or_404(Project, pk=project_pk)
-        serializer = IssueSerializer(
-            context={'request': request},
-            data=request.data)
-        if serializer.is_valid():
-            serializer.save(
-                author_user_id=request.user,
-                project_id=Project.objects.get(pk=project_pk)
-            )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    pass
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-
-    serializer_class = CommentSerializer
-
-    def get_queryset(self):
-
-        """
-        Return the list of comments associated to a specific issue.
-        """
-
-        return Comment.objects.filter(issue_id=self.kwargs['issue_pk'])
-
-    def create(self, request, pk=None, project_pk=None, issue_pk=None):
-        if not Issue.objects.filter(
-            pk=issue_pk,
-            project=project_pk
-        ).exists():
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        comment = get_object_or_404(Comment, pk=pk, issue=issue_pk)
-        serializer = CommentSerializer(comment, data=request.data)
-        if serializer.is_valid():
-            serializer.save(
-                author_user_id=self.request.user,
-                issue_id=Issue.objects.get(pk=issue_pk)
-            )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    pass
