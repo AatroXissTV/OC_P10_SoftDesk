@@ -148,7 +148,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     def create(self, request, project_pk=None, issue_pk=None):
 
         data = request.data.copy()
-
         data['author_user'] = self.request.user.pk
         data['issue'] = issue_pk
 
