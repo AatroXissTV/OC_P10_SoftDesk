@@ -108,9 +108,16 @@ class IssueViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsIssueAuthor]
 
     def get_queryset(self):
+        """
+        Overriding the get_queryset method to return the issues
+        of the project.
+        """
         return Issue.objects.filter(project_id=self.kwargs['project_pk'])
 
     def create(self, request, project_pk=None):
+        """
+        Overriding the create method to create an issue.
+        """
 
         data = request.data.copy()
 
