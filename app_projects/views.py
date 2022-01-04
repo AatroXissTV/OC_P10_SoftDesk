@@ -43,20 +43,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project's contributors.
         """
 
-        serializer.is_valid(raise_exception=True)
-        new_project = serializer.save(
-            author_user_id=self.request.user.id
-        )
-
-        # add the user as a contributor
-        author = Contributor.objects.create(
-            user=self.request.user,
-            project=new_project,
-            role='author'
-        )
-        author.save()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer.save(author_user=self.request.user)
 
 
 class ContributorViewSet(viewsets.ModelViewSet):

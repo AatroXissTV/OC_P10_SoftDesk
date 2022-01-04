@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 TYPE_CHOICES = (
     ('backend', 'backend'),
@@ -40,6 +42,20 @@ class Project(models.Model):
     author_user = models.ForeignKey(to=settings.AUTH_USER_MODEL,
                                     related_name='author',
                                     on_delete=models.CASCADE)
+
+
+@receiver(post_save, sender=Project)
+def add_contributor(sender, instance, created, **kwargs):
+    """
+    Add the author as a contributor to the project.
+    """
+    # check if contributor already exists
+    if created:
+        Contributor.objects.create(
+            user=instance.author_user,
+            project=instance,
+            role='author'
+        )
 
 
 class Contributor(models.Model):
