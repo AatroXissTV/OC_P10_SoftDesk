@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 
 # django rest framework imports
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
 from rest_framework_simplejwt.serializers import (
     PasswordField,
     TokenObtainSerializer
@@ -30,12 +30,23 @@ class UserSerializer(serializers.ModelSerializer):
             'password',
             'password_confirmation']
 
-    def get_validation(self, data):
+    def validate(self, data):
+
         if data['password'] != data['password_confirmation']:
             raise serializers.ValidationError(
                 'Password and password confirmation must match.'
             )
-        validate_password(data['password'])
+
+        errors = dict()
+
+        try:
+            validate_password(data['password'])
+        except exceptions.ValidationError as e:
+            errors['password'] = list(e.messages)
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
         return data
 
     def create(self, validated_data):
