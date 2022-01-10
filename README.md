@@ -42,7 +42,7 @@ or alternatively you can run the server and go to the following URL:
 
     http://localhost:8000/api/register/
 
-or AND I HIGHLY SUGGEST you read the documentation for the API that can be found at this [link](https://www.postman.com/)
+or AND I HIGHLY SUGGEST you read the documentation for the API that can be found at this [link](https://documenter.getpostman.com/view/17750814/UVXgKcDJ)
 
 ## Updates
 
