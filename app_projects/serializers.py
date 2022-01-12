@@ -25,6 +25,4 @@ class IssueSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = '__all__'
-        read_only_fields = ('author_user', 'issue',
-                            'created_time', 'id')
+        fields = ['id', 'description', 'author_user', 'issue', 'created_time']
