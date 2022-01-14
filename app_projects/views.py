@@ -139,6 +139,14 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Comment.objects.filter(issue_id=self.kwargs['issue_pk'])
 
+    # def perform_create(self, serializer):
+    #     """
+    #     Overriding the perform_create method to add the author to the
+    #     comment's contributors.
+    #     """
+
+    #     serializer.save(author_user=self.request.user)
+
     def create(self, request, project_pk=None, issue_pk=None):
 
         data = request.data.copy()
