@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.throttling import UserRateThrottle
 
 # django rest framework simplejwt imports
 from rest_framework_simplejwt.views import TokenViewBase
@@ -18,6 +19,7 @@ User = get_user_model()
 
 class CreateUserView(APIView):
 
+    throttle_classes = [UserRateThrottle]
     serializer_class = UserSerializer
 
     def post(self, request):
