@@ -59,4 +59,23 @@ Pour ce qui est de OWASP, j'ai respecté les directives données dans le documen
 
 En ce qui concerne le top 10 des vulnérabilités OWASP, DRF a des fonctionnalités built in pour les gérer. 
 
+### A1 = Injection
 Par exemple prenons le cas des attaques par injections SQL. Et bien DRF a un ORM par défaut qui protège l'API. Par exemple dans le cas de la classe de la variable Password et et bien je fais appel à models.PasswordField qui définit le comportement des champs password en limitant les caractères autorisés.
+
+### A2 = Broken Authentication
+Par ailleurs, j'ai implémenté une Django Rate Limit pour limiter le nombre de requêtes que l'utilisateur peut effectuer sur le endpoint d'authentification.
+Je n'ai pas incorporé de fonctionnalité de double authentification mais je sais que je peux l'implémenter facilement si besoin est.
+
+### A3 = Sensitive Data Exposure
+Sensitive data like passwords are never stored in plain text. Ils sont convertis en hash avant d'être stockés dans la base de données. 
+Par ailleurs le site étant dev en local, il n'y a pas besoin d'encrypté les requêtes pour le moment.
+
+### A4 = XML External Entities (XXE)
+Sur Django rest Framework il est difficle de réaliser ce genre d'ataque car DRF sérialize et désérialize les données à chaque manipulation.
+
+### A5 = Broken Access Control
+Pour empêcher ça je demande le token de l'utilisateur dans chaque endpoint et en plus de ce token, j'ai écris un fichier de permission qui s'occupe de vérifier si l'utilisateur est autorisé à accéder à certaines requêtes de l'endpoint.
+
+### A6 = Security Misconfiguration
+Il y a certaines choses auquel il faut faire attention lorsqu'on passe en production. 
+Notamment mettre le mode debug sur False.
